@@ -21,6 +21,7 @@ export function initials(name) {
   const pool = significant.length ? significant : words;
   if (pool.length === 0) return "??";
   if (pool.length === 1) return pool[0].slice(0, 2).toUpperCase();
+  if (/^\d{3,}$/.test(pool[0])) return pool[0].slice(0, 3);
   return (pool[0][0] + pool[1][0]).toUpperCase();
 }
 
