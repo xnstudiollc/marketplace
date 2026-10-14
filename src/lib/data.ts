@@ -3,6 +3,7 @@ import gamesJson from "../../data/games.json";
 import featuredJson from "../../data/featured.json";
 import { CATEGORY_ORDER } from "./categories";
 import { LETTERS, letterOf } from "./letters";
+import { hash } from "./mock/rng";
 import { getGameStats } from "./mock/stats";
 import type { BrowseEntry, CategoryId, Game, ListingTypeId, SearchEntry } from "./types";
 
@@ -67,4 +68,36 @@ export function toBrowseEntry(game: Game): BrowseEntry {
 
 export function getBrowseEntries(list: Game[] = games): BrowseEntry[] {
   return list.map(toBrowseEntry);
+}
+
+export interface SiteStats {
+  games: number;
+  categories: number;
+  offers: number;
+  instantOffers: number;
+}
+
+let siteStats: SiteStats | undefined;
+
+export function getSiteStats(): SiteStats {
+  if (siteStats) return siteStats;
+  let offers = 0;
+  let instantOffers = 0;
+  for (const g of games) {
+    const s = getGameStats(g);
+    offers += s.offers;
+    instantOffers += Math.round(s.offers * s.instantShare);
+  }
+  siteStats = { games: games.length, categories: CATEGORY_ORDER.length, offers, instantOffers };
+  return siteStats;
+}
+
+/** Deterministic picks for a seed (for example an ISO week), drawn from games with at least four listing types. */
+export function getTrendingGames(seed: string, count = 12): Game[] {
+  return games
+    .filter((g) => !g.collection && g.listingTypes.length >= 4)
+    .map((g) => ({ g, k: hash(`${seed}:${g.slug}`) }))
+    .sort((a, b) => a.k - b.k)
+    .slice(0, count)
+    .map(({ g }) => g);
 }

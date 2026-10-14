@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     .slice(0, 4)
     .map(({ name, slug, category, initials }) => ({ name, slug, category, initials }));
   return (
-    <html lang="en" className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <a
           href="#main"

@@ -68,19 +68,11 @@ export function GameImage({
   ) : (
     <div
       aria-hidden
-      className={cn(base, "@container overflow-hidden")}
-      style={{ background: tileBackground(game.slug) } as CSSProperties}
+      data-long={game.initials.length > 2 || undefined}
+      className={cn("game-tile", base)}
+      style={{ "--tile-bg": tileBackground(game.slug) } as CSSProperties}
     >
-      <div className="absolute inset-0 bg-[conic-gradient(from_210deg_at_70%_20%,rgba(255,255,255,0.22),transparent_25%,transparent_70%,rgba(255,255,255,0.12))] mix-blend-soft-light" />
-      <div className="absolute inset-0 rounded-[inherit] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18),inset_0_1px_0_rgba(255,255,255,0.3)]" />
-      <span
-        className={cn(
-          "absolute inset-0 grid place-items-center font-bold tracking-[-0.02em] text-white/92 [text-shadow:0_2px_10px_rgba(0,0,0,0.35)]",
-          game.initials.length > 2 ? "text-[30cqw]" : "text-[38cqw]",
-        )}
-      >
-        {game.initials}
-      </span>
+      <span>{game.initials}</span>
     </div>
   );
 

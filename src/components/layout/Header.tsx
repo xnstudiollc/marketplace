@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { cartTotals, useCart } from "@/store/cart";
+import { useModKey } from "@/hooks/use-mod-key";
 import { useUi } from "@/store/ui";
 import { Logo } from "./Logo";
 import { MobileNav } from "./MobileNav";
@@ -22,6 +23,7 @@ import { MobileNav } from "./MobileNav";
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const setPaletteOpen = useUi((s) => s.setPaletteOpen);
+  const mod = useModKey();
   const setCartOpen = useUi((s) => s.setCartOpen);
   const setMobileNavOpen = useUi((s) => s.setMobileNavOpen);
   const count = useCart((s) => cartTotals(s.items).count);
@@ -98,7 +100,7 @@ export function Header() {
             <Search className="size-[18px]" strokeWidth={1.75} />
             <span className="flex-1 text-[0.875rem]">Search games…</span>
             <kbd className="rounded-md border border-line-strong px-1.5 py-0.5 font-mono text-[0.6875rem] text-fg-subtle">
-              ⌘K
+              {mod}K
             </kbd>
           </button>
           <Tooltip>
@@ -113,7 +115,7 @@ export function Header() {
                 <Search className="size-5" strokeWidth={1.75} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Search (⌘K)</TooltipContent>
+            <TooltipContent>Search ({mod}K)</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>

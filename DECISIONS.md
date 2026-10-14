@@ -24,3 +24,15 @@ Short notes on choices where the build prompt was silent or where the framework 
 - **"Best match" sort appears only while searching** and is the default then; otherwise A to Z is the default. Default values are left out of the URL.
 - **Card prices ("From $X")** come from `getGameStats()`, the same deterministic listings the game page uses, so the numbers agree.
 - **`/dev/tiles` returns 404 in production builds** via `notFound()`, as specified; it renders under `next dev`.
+
+## Home
+
+- **Featured shows 12 of the 16 featured games** so the grid fills evenly at 2, 3 and 4 columns. The marquee uses the same 12.
+- **Trending is seeded by the ISO week** read inside a `"use cache"` function with `cacheLife("days")`. The home page stays prerendered, revalidates daily, and the picks change once a week. This is the only place the clock is read, and it happens in a cache scope, never during render. The pool is non-collection games with at least four listing types.
+- **"Instant offers" in the hero** is the sum of instant-delivery mock listings across all games, so it matches what the game pages show.
+- **A to Z "popular" styling** (bold name and a star) marks the featured games, and never collections. Letters with no games are disabled in the rail.
+- **The A to Z sections do not use `content-visibility: auto`.** Their real heights vary too much from any estimate, and jumping to a letter landed hundreds of pixels off as sections rendered. The sections are a client component fed compact `[name, slug, initials, flags]` tuples, and tile styles live in a `.game-tile` CSS class, which cut the home HTML from 2.5 MB to under 0.8 MB.
+- **A to Z links use `prefetch={false}`** so scrolling the full catalog does not fire 858 prefetches.
+- **Reveal animations stay hydration-safe** by always rendering the motion element; under reduced motion a `[data-reveal]` CSS rule pins them visible, instead of branching on `useReducedMotion()` during render.
+- **Section spacing**: `section-y` pads 24px or 36px on each side, so adjacent sections sit 48px (mobile) or 72px (desktop) apart, as specified.
+- **The shortcut hint shows "⌘K" on Apple platforms and "Ctrl K" elsewhere.**
