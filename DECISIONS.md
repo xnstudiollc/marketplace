@@ -36,3 +36,14 @@ Short notes on choices where the build prompt was silent or where the framework 
 - **Reveal animations stay hydration-safe** by always rendering the motion element; under reduced motion a `[data-reveal]` CSS rule pins them visible, instead of branching on `useReducedMotion()` during render.
 - **Section spacing**: `section-y` pads 24px or 36px on each side, so adjacent sections sit 48px (mobile) or 72px (desktop) apart, as specified.
 - **The shortcut hint shows "⌘K" on Apple platforms and "Ctrl K" elsewhere.**
+
+## Game page
+
+- **Listings are generated on the client** from the game record (`getListings()` in `src/lib/mock/listings.ts` is pure and seeded by the slug), so the 858 prerendered game pages ship only the hero, stats and related games, not up to 240 listing objects each. The server computes the same stats for the hero and cards, so the numbers agree.
+- **Each listing type is capped at 40 mock offers.** That is enough to show filtering and "Load more" (12 per page) without bloating memory.
+- **Only `tab` and `v` (variant) live in the URL.** Price, delivery, rating, online, label and experience filters are kept per tab in component state, so switching tabs and coming back restores them, while shared links stay short. The price range is clamped whenever the variant changes the bounds.
+- **Tabs use `activationMode="manual"`** so arrow keys move focus without switching tabs (and pushing history entries) on every key press. Only the active tab's panel renders.
+- **"Why buy here" sits beside the hero on large screens** and moves below the offers on smaller ones, so offers stay near the top on mobile.
+- **The mobile offers bar appears only while the offers section is on screen** and hides (and becomes `inert`) while the filter sheet is open.
+- **Currency and keys get a quantity stepper** (up to 99 or the stock, whichever is lower). Other types are one-off and always have quantity 1.
+- **"Buy now" adds the offer to the cart and opens checkout**, so checkout always works from one cart.

@@ -92,6 +92,16 @@ export function getSiteStats(): SiteStats {
   return siteStats;
 }
 
+/** Up to `count` other games from the same category, ordered by a hash seeded with the game's slug; collections sort last. */
+export function getRelatedGames(game: Game, count = 8): Game[] {
+  return games
+    .filter((g) => g.category === game.category && g.slug !== game.slug)
+    .map((g) => ({ g, k: hash(`related:${game.slug}:${g.slug}`) + (g.collection ? 2 ** 32 : 0) }))
+    .sort((a, b) => a.k - b.k)
+    .slice(0, count)
+    .map(({ g }) => g);
+}
+
 /** Deterministic picks for a seed (for example an ISO week), drawn from games with at least four listing types. */
 export function getTrendingGames(seed: string, count = 12): Game[] {
   return games

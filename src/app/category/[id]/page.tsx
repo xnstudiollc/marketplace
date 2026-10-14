@@ -1,9 +1,8 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight } from "lucide-react";
 import { BrowseClient } from "@/components/browse/BrowseClient";
+import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { CATEGORY_META, CATEGORY_ORDER, isCategoryId } from "@/lib/categories";
 import { getBrowseEntries, getGamesByCategory } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
@@ -32,21 +31,7 @@ export default async function CategoryPage({ params }: PageProps<"/category/[id]
 
   return (
     <div className="container-page pt-8 pb-16 sm:pt-12" style={{ "--cat-accent": meta.accent } as CSSProperties}>
-      <nav aria-label="Breadcrumb" className="mb-6 text-sm text-fg-subtle">
-        <ol className="flex items-center gap-1.5">
-          <li>
-            <Link href="/browse" className="hover:text-fg">
-              Browse
-            </Link>
-          </li>
-          <li aria-hidden>
-            <ChevronRight className="size-3.5" />
-          </li>
-          <li aria-current="page" className="text-fg-muted">
-            {meta.label}
-          </li>
-        </ol>
-      </nav>
+      <Breadcrumbs className="mb-6" items={[{ label: "Home", href: "/" }, { label: "Browse", href: "/browse" }, { label: meta.label }]} />
       <header className="glass relative mb-8 overflow-hidden rounded-3xl p-6 sm:p-8">
         <div
           aria-hidden
