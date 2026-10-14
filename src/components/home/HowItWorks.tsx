@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion, useScroll, useSpring } from "motion/react";
 import { PackageCheck, Search, ShieldCheck } from "lucide-react";
 import { SectionHeader } from "@/components/common/SectionHeader";
+import { SITE } from "@/lib/site";
 
 const STEPS = [
   {
@@ -45,7 +46,7 @@ export function HowItWorks() {
         id="how-title"
         eyebrow="How it works"
         title="Three steps, protected end to end"
-        description="Every order on Vaultline follows the same flow, whatever you are buying."
+        description={`Every order on ${SITE.name} follows the same flow, whatever you are buying.`}
       />
       <div ref={ref} className="relative">
         <div

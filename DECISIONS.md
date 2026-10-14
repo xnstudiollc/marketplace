@@ -61,3 +61,20 @@ Short notes on choices where the build prompt was silent or where the framework 
 - **Order numbers use `crypto.getRandomValues` in the submit handler**, never during render. They use an alphabet without 0, O, 1 and I. The order is saved to `sessionStorage` before the cart is cleared, and checkout keeps showing the placed items until navigation completes.
 - **The success page shows the order again after a refresh** (it is in `sessionStorage`), and sends you to `/` when there is no order.
 - **Cart, checkout and success pages are `noindex`.**
+
+## Polish, SEO and QA
+
+- **Reduced motion is handled at three levels:** a global `MotionConfig reducedMotion="user"` (motion skips transform and layout animations), the CSS media query that shortens transitions and hides the marquee, and the `[data-reveal]` rule that keeps scroll reveals visible. Opacity fades still run, which the OS setting allows.
+- **Open Graph images are prerendered at build time** for the site and all 858 games (about 15 seconds of build time). They use Geist TTFs committed in `assets/fonts/` (SIL OFL), because `next/font` ships WOFF2, which the image renderer cannot read, and fetching fonts would be a network call.
+- **The sitemap lists home, browse, categories, every game, every seller, help and about.** Cart, checkout and `/dev/tiles` are left out and disallowed in `robots.txt`. Cart and checkout are also `noindex`.
+- **The 404 search box is a plain GET form to `/browse?q=`**, so it works before JavaScript loads and reuses the browse search.
+- **`error.tsx` uses `retry()`**, which became the stable recovery API in Next.js 16.3.
+- **Help and About are short static pages.** The FAQ accordion is shared with the home page. Footer links (`#buyer-protection`, `#delivery`, `#sellers`, `#demo`) land below the sticky header via `scroll-margin-top`.
+- **The brand name lives only in `src/lib/site.ts`.** Every page, metadata entry and image reads it from there.
+
+## Known limitations
+
+- **Hard reloads of filtered URLs** (`/browse?cat=...`, `?tab=` on game pages) show the unfiltered state for a moment until hydration applies the filters, because pages are fully prerendered (see Browse).
+- **Mock data is generated, not curated**, so some combinations read oddly, for example a currency name from one game's labels next to a generic title template, or a 5.0 seller with a few 4-star reviews.
+- **The cart stores prices captured when an item was added.** Changing the generator later would leave old carts with stale prices until they are cleared.
+- **No real search ranking across listings**: search covers game names only, as specified.

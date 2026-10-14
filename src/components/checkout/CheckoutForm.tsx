@@ -13,6 +13,7 @@ import { formatPrice } from "@/lib/format";
 import type { ListingTypeId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { cartTotals, type CartItem } from "@/store/cart";
+import { SITE } from "@/lib/site";
 
 const DETAIL_LABEL: Partial<Record<ListingTypeId, { label: string; hint: string }>> = {
   currency: { label: "Character name", hint: "Include the server or realm if the game has one." },
@@ -153,7 +154,7 @@ export function CheckoutForm({ items, onPlaced }: { items: CartItem[]; onPlaced:
           />
           <div className="space-y-1">
             <label htmlFor="terms" className="text-sm text-fg-muted">
-              I agree to the demo terms and understand that Vaultline holds payment until I confirm delivery.
+              I agree to the demo terms and understand that {SITE.name} holds payment until I confirm delivery.
             </label>
             <FieldMessage id="terms" error={errors.terms?.message} />
           </div>

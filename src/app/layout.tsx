@@ -8,6 +8,7 @@ import { ClientEffects } from "@/components/layout/ClientEffects";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { MotionProvider } from "@/components/layout/MotionProvider";
 import { getFeatured } from "@/lib/data";
 import { SITE } from "@/lib/site";
 import "./globals.css";
@@ -44,15 +45,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         <Background />
-        <TooltipProvider delayDuration={300}>
-          <Header />
-          <main id="main" tabIndex={-1} className="flex-1 outline-none">
-            {children}
-          </main>
-          <Footer />
-          <CartDrawer suggestions={suggestions} />
-          <CommandPalette />
-        </TooltipProvider>
+        <MotionProvider>
+          <TooltipProvider delayDuration={300}>
+            <Header />
+            <main id="main" tabIndex={-1} className="flex-1 outline-none">
+              {children}
+            </main>
+            <Footer />
+            <CartDrawer suggestions={suggestions} />
+            <CommandPalette />
+          </TooltipProvider>
+        </MotionProvider>
         <Toaster position="bottom-right" />
         <ClientEffects />
       </body>

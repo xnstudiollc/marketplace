@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/common/Reveal";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { LogoMark } from "@/components/layout/Logo";
+import { SITE } from "@/lib/site";
 
 const FAQ = [
   {
@@ -28,10 +29,25 @@ const FAQ = [
     a: "Verified sellers have confirmed their identity and kept a high completion rate. Ratings and order counts only come from completed orders, so they cannot be bought.",
   },
   {
-    q: "Can I sell on Vaultline?",
+    q: `Can I sell on ${SITE.name}?`,
     a: "Yes. Create a seller profile, list what you have, and get paid once buyers confirm delivery. Listing is free; a small commission applies to completed sales.",
   },
 ];
+
+export function FaqAccordion() {
+  return (
+    <Accordion type="single" collapsible className="glass rounded-2xl px-5 sm:px-6">
+      {FAQ.map(({ q, a }, i) => (
+        <AccordionItem key={q} value={`faq-${i}`} className="border-line last:border-b-0">
+          <AccordionTrigger className="min-h-14 py-4 text-left text-[0.9375rem] font-semibold text-fg hover:no-underline">
+            {q}
+          </AccordionTrigger>
+          <AccordionContent className="pb-5 text-fg-muted">{a}</AccordionContent>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  );
+}
 
 export function Faq() {
   return (
@@ -52,16 +68,7 @@ export function Faq() {
           }
           className="flex-col items-start justify-start self-start lg:mb-0"
         />
-        <Accordion type="single" collapsible className="glass rounded-2xl px-5 sm:px-6">
-          {FAQ.map(({ q, a }, i) => (
-            <AccordionItem key={q} value={`faq-${i}`} className="border-line last:border-b-0">
-              <AccordionTrigger className="min-h-14 py-4 text-left text-[0.9375rem] font-semibold text-fg hover:no-underline">
-                {q}
-              </AccordionTrigger>
-              <AccordionContent className="pb-5 text-fg-muted">{a}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+        <FaqAccordion />
       </Reveal>
     </section>
   );

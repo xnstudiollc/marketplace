@@ -7,6 +7,7 @@ import { getSellerCatalog } from "@/lib/data";
 import { formatNumber, formatResponse } from "@/lib/format";
 import { getSellerReviews, ratingDistribution } from "@/lib/mock/reviews";
 import { SELLERS, getSeller } from "@/lib/mock/sellers";
+import { SITE } from "@/lib/site";
 
 export function generateStaticParams() {
   return SELLERS.map((s) => ({ id: s.id }));
@@ -16,12 +17,12 @@ export async function generateMetadata({ params }: PageProps<"/sellers/[id]">): 
   const { id } = await params;
   const seller = getSeller(id);
   if (!seller) return {};
-  const description = `${seller.handle} on Vaultline: rated ${seller.rating.toFixed(1)} from ${formatNumber(seller.reviewCount)} reviews, ${formatNumber(seller.completedOrders)} completed orders, replies in about ${formatResponse(seller.responseMinutes)}.`;
+  const description = `${seller.handle} on ${SITE.name}: rated ${seller.rating.toFixed(1)} from ${formatNumber(seller.reviewCount)} reviews, ${formatNumber(seller.completedOrders)} completed orders, replies in about ${formatResponse(seller.responseMinutes)}.`;
   return {
     title: `${seller.handle}, seller profile`,
     description,
     alternates: { canonical: `/sellers/${seller.id}` },
-    openGraph: { title: `${seller.handle} on Vaultline`, description, url: `/sellers/${seller.id}` },
+    openGraph: { title: `${seller.handle} on ${SITE.name}`, description, url: `/sellers/${seller.id}` },
   };
 }
 

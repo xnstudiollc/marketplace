@@ -7,10 +7,11 @@ import { Controller, type Control, type FieldErrors, type UseFormRegister } from
 import { TextField } from "@/components/checkout/Field";
 import { formatCardNumber, formatExpiry, type CheckoutValues, type PaymentMethod } from "@/lib/checkout";
 import { cn } from "@/lib/utils";
+import { SITE } from "@/lib/site";
 
 const METHODS: { id: PaymentMethod; label: string; description: string; icon: typeof CreditCard }[] = [
   { id: "card", label: "Card", description: "Visa, Mastercard and more", icon: CreditCard },
-  { id: "wallet", label: "Wallet balance", description: "Pay from your Vaultline balance", icon: Wallet },
+  { id: "wallet", label: "Wallet balance", description: `Pay from your ${SITE.name} balance`, icon: Wallet },
   { id: "crypto", label: "Crypto", description: "Settle with a supported coin", icon: Bitcoin },
 ];
 

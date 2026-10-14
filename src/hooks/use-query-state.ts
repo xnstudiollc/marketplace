@@ -41,7 +41,3 @@ export function useQueryState() {
 
   return { params, ready, update };
 }
-
-export function readList(params: URLSearchParams, key: string): string[] {
-  return (params.get(key) ?? "").split(",").filter(Boolean);
-}
