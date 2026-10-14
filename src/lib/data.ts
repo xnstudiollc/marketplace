@@ -2,7 +2,9 @@ import "server-only";
 import gamesJson from "../../data/games.json";
 import featuredJson from "../../data/featured.json";
 import { CATEGORY_ORDER } from "./categories";
-import type { CategoryId, Game, ListingTypeId, SearchEntry } from "./types";
+import { LETTERS, letterOf } from "./letters";
+import { getGameStats } from "./mock/stats";
+import type { BrowseEntry, CategoryId, Game, ListingTypeId, SearchEntry } from "./types";
 
 const games = (gamesJson as unknown as Game[])
   .slice()
@@ -43,15 +45,26 @@ export function getListingTypeCounts(): Record<ListingTypeId, number> {
   return counts;
 }
 
-export function letterOf(name: string): string {
-  const first = name.normalize("NFKD").replace(/^[^a-zA-Z0-9]+/, "").charAt(0).toUpperCase();
-  return /[A-Z]/.test(first) ? first : "#";
-}
-
-export const LETTERS = ["#", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
-
 export function groupAlphabetically(list: Game[] = games): { letter: string; games: Game[] }[] {
   const groups = new Map<string, Game[]>(LETTERS.map((l) => [l, []]));
   for (const g of list) groups.get(letterOf(g.name))?.push(g);
   return LETTERS.map((letter) => ({ letter, games: groups.get(letter) ?? [] }));
+}
+
+export function toBrowseEntry(game: Game): BrowseEntry {
+  return {
+    name: game.name,
+    slug: game.slug,
+    category: game.category,
+    initials: game.initials,
+    ...(game.collection ? { collection: true as const } : {}),
+    listingTypes: game.listingTypes,
+    hasVariants: Boolean(game.variants?.length),
+    labelText: [...new Set(game.labels.map((l) => l.name))].join(" "),
+    fromPrice: getGameStats(game).fromPrice,
+  };
+}
+
+export function getBrowseEntries(list: Game[] = games): BrowseEntry[] {
+  return list.map(toBrowseEntry);
 }

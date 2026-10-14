@@ -4,7 +4,7 @@ Short notes on choices where the build prompt was silent or where the framework 
 
 ## Foundation
 
-- **Next.js 16.4 with Cache Components and Partial Prefetching** (the `create-next-app` defaults). Every route is prerendered; dynamic `params` routes use `generateStaticParams` with `dynamicParams = false`.
+- **Next.js 16.4 with Cache Components and Partial Prefetching** (the `create-next-app` defaults). Every route is prerendered. Dynamic `params` routes list every known value in `generateStaticParams` and call `notFound()` for anything else, because `dynamicParams` is not allowed with Cache Components.
 - **Brand accent tokens are named `--brand`, `--brand-2`, `--brand-3`** instead of `--accent*`, because shadcn already uses `--accent` for the menu hover surface. All other tokens use the names from the prompt.
 - **`--text-subtle` is `#838CA8`** rather than `#6B7490`. The original measured 4.31:1 on the page background and 3.85:1 on raised surfaces, below WCAG AA for body text. The new value is 5.98:1 and 5.34:1.
 - **Primary button gradient runs `#6D4AFF` to `#4F46E5`** (violet to indigo). White text on pure `#7C5CFF` is 4.35:1, just under AA; the darker start keeps the look and passes.
@@ -13,3 +13,14 @@ Short notes on choices where the build prompt was silent or where the framework 
 - **The search index is a static file** (`public/search-index.json`, generated in `predev`/`prebuild`) loaded the first time the palette opens, so it is not in every page's payload.
 - **Search uses a small custom scorer** (`src/lib/search.ts`) instead of `fuse.js`: exact, prefix and word-prefix matches rank highest, and punctuation and apostrophes are ignored so "r.e.p.o", "83" and "tom clancy" all match.
 - **`typecheck` runs `next typegen` first** so the global `PageProps`/`LayoutProps` helpers exist without a full build.
+
+## Browse
+
+- **URL state uses a small `useSyncExternalStore` hook** (`src/hooks/use-query-state.ts`) over `window.location.search` and `history.pushState`, instead of `nuqs` or `useSearchParams`. `useSearchParams` would force the browse grid to render on the client only; this way `/browse` and every `/category/*` page prerender the full A to Z grid. The trade-off: on a hard reload of a filtered URL, the unfiltered grid is in the HTML and the filters apply right after hydration. Client-side navigation has no such step.
+- **Filter clicks push a history entry; typing in search replaces it**, so Back undoes one filter at a time without stepping through every keystroke.
+- **Listing type filters match any selected type** (Accounts or Currency), the same as categories. Matching all types would empty the grid on most combinations.
+- **Facet counts exclude their own dimension**: the category counts reflect the current search, type and letter filters, but not the selected categories. A count of 0 disables that option.
+- **A letter filter (`?letter=`) was added** next to the prompt's `q`, `cat`, `type`, `variants` and `sort`, reusing the A to Z grouping rules from `groupAlphabetically()`.
+- **"Best match" sort appears only while searching** and is the default then; otherwise A to Z is the default. Default values are left out of the URL.
+- **Card prices ("From $X")** come from `getGameStats()`, the same deterministic listings the game page uses, so the numbers agree.
+- **`/dev/tiles` returns 404 in production builds** via `notFound()`, as specified; it renders under `next dev`.

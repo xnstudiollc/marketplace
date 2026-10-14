@@ -27,6 +27,13 @@ export interface Game {
 
 export type SearchEntry = Pick<Game, "name" | "slug" | "category" | "initials" | "collection">;
 
+export interface BrowseEntry extends SearchEntry {
+  listingTypes: ListingTypeId[];
+  hasVariants: boolean;
+  labelText: string;
+  fromPrice: number;
+}
+
 export interface Seller {
   id: string;
   handle: string;
