@@ -47,3 +47,17 @@ Short notes on choices where the build prompt was silent or where the framework 
 - **The mobile offers bar appears only while the offers section is on screen** and hides (and becomes `inert`) while the filter sheet is open.
 - **Currency and keys get a quantity stepper** (up to 99 or the stock, whichever is lower). Other types are one-off and always have quantity 1.
 - **"Buy now" adds the offer to the cart and opens checkout**, so checkout always works from one cart.
+
+## Sellers, cart and checkout
+
+- **A seller's games and offers come from the same listing generator as the game pages.** Candidate games are ordered by a hash of the seller id, and a game is kept only if that seller actually has offers there, up to eight games. Every offer on a seller page also appears on its game page.
+- **On seller pages the listing card shows the game instead of the seller** (all offers share the seller), and the "Games" chips link to the game pages. A second chip row filters the offers by game.
+- **Only the seller tab (`?tab=reviews`) is in the URL.** The game filter on the Offers tab is local state.
+- **The "Helpful" buttons toggle per review** (with `aria-pressed`) and add one to the count. Nothing is saved.
+- **Cart and checkout show a skeleton until the persisted cart loads** (`useCartHydrated`), so a full cart never flashes as empty.
+- **"Clear cart" offers Undo**, the same as removing one item.
+- **Delivery details are asked only for currency, items and services**, one field per cart line, labeled by type (character name, in-game username, account or character name). Accounts and keys arrive in the order chat.
+- **Card validation reads the clock only on submit** (expiry must not be in the past). The test card 4242 4242 4242 4242 is shown in the demo banner. Switching payment method hides the card fields but keeps what was typed.
+- **Order numbers use `crypto.getRandomValues` in the submit handler**, never during render. They use an alphabet without 0, O, 1 and I. The order is saved to `sessionStorage` before the cart is cleared, and checkout keeps showing the placed items until navigation completes.
+- **The success page shows the order again after a refresh** (it is in `sessionStorage`), and sends you to `/` when there is no order.
+- **Cart, checkout and success pages are `noindex`.**

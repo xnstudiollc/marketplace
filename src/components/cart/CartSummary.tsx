@@ -6,7 +6,8 @@ import { BadgeCheck, ShieldCheck } from "lucide-react";
 import { AnimatedNumber } from "@/components/common/AnimatedNumber";
 import { GameImage } from "@/components/game/GameImage";
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/format";
+import { formatPrice, pluralize } from "@/lib/format";
+import { getSeller } from "@/lib/mock/sellers";
 import type { SearchEntry } from "@/lib/types";
 import { cartTotals, SERVICE_FEE_RATE, type CartItem } from "@/store/cart";
 import { CartLine } from "./CartLine";
@@ -33,9 +34,10 @@ export function CartLines({ items, onNavigate }: { items: CartItem[]; onNavigate
               onClick={onNavigate}
               className="inline-flex items-center gap-1.5 text-[0.875rem] font-medium text-fg hover:text-brand-2"
             >
-              {group.sellerHandle} <BadgeCheck className="size-4 text-brand-2" aria-label="Verified seller" />
+              {group.sellerHandle}
+              {getSeller(group.sellerId)?.verified && <BadgeCheck className="size-4 text-brand-2" aria-label="Verified seller" />}
             </Link>
-            <span className="text-[0.75rem] text-fg-subtle">{group.items.length} item(s)</span>
+            <span className="text-[0.75rem] text-fg-subtle">{pluralize(group.items.length, "item")}</span>
           </div>
           <div className="divide-y divide-line">
             <AnimatePresence initial={false}>

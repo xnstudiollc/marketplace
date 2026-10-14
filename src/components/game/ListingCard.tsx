@@ -14,10 +14,13 @@ export const ListingCard = memo(function ListingCard({
   listing,
   game,
   onOpen,
+  lead,
 }: {
   listing: Listing;
   game: Pick<Game, "name">;
   onOpen: (listing: Listing) => void;
+  /** Replaces the seller block, for pages where every offer has the same seller. */
+  lead?: React.ReactNode;
 }) {
   const seller = getSellerOrThrow(listing.sellerId);
   const perUnit = perUnitLabel(listing);
@@ -29,7 +32,7 @@ export const ListingCard = memo(function ListingCard({
       className="relative grid gap-4 rounded-2xl p-4 sm:p-5 md:grid-cols-[minmax(0,1fr)_auto] md:[grid-template-areas:'seller_price''main_price'] xl:grid-cols-[190px_minmax(0,1fr)_auto] xl:items-center xl:[grid-template-areas:'seller_main_price']"
     >
       <div className="md:[grid-area:seller]">
-        <SellerMini seller={seller} />
+        {lead ?? <SellerMini seller={seller} />}
       </div>
 
       <div className="min-w-0 md:[grid-area:main]">

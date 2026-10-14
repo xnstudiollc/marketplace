@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { ListingTypeId } from "@/lib/types";
@@ -70,6 +71,13 @@ export const useCart = create<CartState>()(
     },
   ),
 );
+
+const subscribeHydration = (onChange: () => void) => useCart.persist.onFinishHydration(onChange);
+
+/** False on the server and until the persisted cart has loaded, so pages can avoid flashing an empty cart. */
+export function useCartHydrated(): boolean {
+  return useSyncExternalStore(subscribeHydration, () => useCart.persist.hasHydrated(), () => false);
+}
 
 export function cartTotals(items: CartItem[]) {
   const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);

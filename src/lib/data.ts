@@ -3,9 +3,10 @@ import gamesJson from "../../data/games.json";
 import featuredJson from "../../data/featured.json";
 import { CATEGORY_ORDER } from "./categories";
 import { LETTERS, letterOf } from "./letters";
+import { getListings } from "./mock/listings";
 import { hash } from "./mock/rng";
 import { getGameStats } from "./mock/stats";
-import type { BrowseEntry, CategoryId, Game, ListingTypeId, SearchEntry } from "./types";
+import type { BrowseEntry, CategoryId, Game, Listing, ListingTypeId, SearchEntry } from "./types";
 
 const games = (gamesJson as unknown as Game[])
   .slice()
@@ -100,6 +101,31 @@ export function getRelatedGames(game: Game, count = 8): Game[] {
     .sort((a, b) => a.k - b.k)
     .slice(0, count)
     .map(({ g }) => g);
+}
+
+export interface SellerCatalog {
+  games: Pick<Game, "name" | "slug" | "initials" | "category">[];
+  listings: Listing[];
+}
+
+/**
+ * The games a seller trades in and their offers there. Candidate games are ordered by a hash seeded with the seller id;
+ * only games where the shared listing generator actually assigns this seller offers are kept, so both pages agree.
+ */
+export function getSellerCatalog(sellerId: string, maxGames = 8): SellerCatalog {
+  const picked: SellerCatalog = { games: [], listings: [] };
+  const pool = games
+    .filter((g) => !g.collection && g.listingTypes.length >= 3)
+    .map((g) => ({ g, k: hash(`seller-games:${sellerId}:${g.slug}`) }))
+    .sort((a, b) => a.k - b.k);
+  for (const { g } of pool) {
+    const own = g.listingTypes.flatMap((t) => getListings(g, t)).filter((l) => l.sellerId === sellerId);
+    if (!own.length) continue;
+    picked.games.push({ name: g.name, slug: g.slug, initials: g.initials, category: g.category });
+    picked.listings.push(...own);
+    if (picked.games.length >= maxGames) break;
+  }
+  return picked;
 }
 
 /** Deterministic picks for a seed (for example an ISO week), drawn from games with at least four listing types. */
