@@ -1,0 +1,91 @@
+# Decisions
+
+Short notes on choices where the build prompt was silent or where the framework forced a deviation.
+
+## Foundation
+
+- **Next.js 16.4 with Cache Components and Partial Prefetching** (the `create-next-app` defaults). Every route is prerendered. Dynamic `params` routes list every known value in `generateStaticParams` and call `notFound()` for anything else, because `dynamicParams` is not allowed with Cache Components.
+- **Brand accent tokens are named `--brand`, `--brand-2`, `--brand-3`** instead of `--accent*`, because shadcn already uses `--accent` for the menu hover surface. All other tokens use the names from the prompt.
+- **`--text-subtle` is `#838CA8`** rather than `#6B7490`. The original measured 4.31:1 on the page background and 3.85:1 on raised surfaces, below WCAG AA for body text. The new value is 5.98:1 and 5.34:1.
+- **Primary button gradient runs `#6D4AFF` to `#4F46E5`** (violet to indigo). White text on pure `#7C5CFF` is 4.35:1, just under AA; the darker start keeps the look and passes.
+- **The cursor-follow glow is one delegated `pointermove` listener** (`ClientEffects`) that writes `--mx`/`--my` onto the closest `.glow-card`. Cards stay server components instead of each becoming a client island.
+- **Persisted Zustand stores use `skipHydration`** and rehydrate after mount, so server HTML and the first client render always match.
+- **The search index is a static file** (`public/search-index.json`, generated in `predev`/`prebuild`) loaded the first time the palette opens, so it is not in every page's payload.
+- **Search uses a small custom scorer** (`src/lib/search.ts`) instead of `fuse.js`: exact, prefix and word-prefix matches rank highest, and punctuation and apostrophes are ignored so "r.e.p.o", "83" and "tom clancy" all match.
+- **`typecheck` runs `next typegen` first** so the global `PageProps`/`LayoutProps` helpers exist without a full build.
+
+## Browse
+
+- **URL state uses a small `useSyncExternalStore` hook** (`src/hooks/use-query-state.ts`) over `window.location.search` and `history.pushState`, instead of `nuqs` or `useSearchParams`. `useSearchParams` would force the browse grid to render on the client only; this way `/browse` and every `/category/*` page prerender the full A to Z grid. The trade-off: on a hard reload of a filtered URL, the unfiltered grid is in the HTML and the filters apply right after hydration. Client-side navigation has no such step.
+- **Filter clicks push a history entry; typing in search replaces it**, so Back undoes one filter at a time without stepping through every keystroke.
+- **Listing type filters match any selected type** (Accounts or Currency), the same as categories. Matching all types would empty the grid on most combinations.
+- **Facet counts exclude their own dimension**: the category counts reflect the current search, type and letter filters, but not the selected categories. A count of 0 disables that option.
+- **A letter filter (`?letter=`) was added** next to the prompt's `q`, `cat`, `type`, `variants` and `sort`, reusing the A to Z grouping rules from `groupAlphabetically()`.
+- **"Best match" sort appears only while searching** and is the default then; otherwise A to Z is the default. Default values are left out of the URL.
+- **Card prices ("From $X")** come from `getGameStats()`, the same deterministic listings the game page uses, so the numbers agree.
+- **`/dev/tiles` returns 404 in production builds** via `notFound()`, as specified; it renders under `next dev`.
+
+## Home
+
+- **Featured shows 12 of the 16 featured games** so the grid fills evenly at 2, 3 and 4 columns. The marquee uses the same 12.
+- **Trending is seeded by the ISO week** read inside a `"use cache"` function with `cacheLife("days")`. The home page stays prerendered, revalidates daily, and the picks change once a week. This is the only place the clock is read, and it happens in a cache scope, never during render. The pool is non-collection games with at least four listing types.
+- **"Instant offers" in the hero** is the sum of instant-delivery mock listings across all games, so it matches what the game pages show.
+- **A to Z "popular" styling** (bold name and a star) marks the featured games, and never collections. Letters with no games are disabled in the rail.
+- **The A to Z sections do not use `content-visibility: auto`.** Their real heights vary too much from any estimate, and jumping to a letter landed hundreds of pixels off as sections rendered. The sections are a client component fed compact `[name, slug, initials, flags]` tuples, and tile styles live in a `.game-tile` CSS class, which cut the home HTML from 2.5 MB to under 0.8 MB.
+- **A to Z links use `prefetch={false}`** so scrolling the full catalog does not fire 858 prefetches.
+- **Reveal animations stay hydration-safe** by always rendering the motion element; under reduced motion a `[data-reveal]` CSS rule pins them visible, instead of branching on `useReducedMotion()` during render.
+- **Section spacing**: `section-y` pads 24px or 36px on each side, so adjacent sections sit 48px (mobile) or 72px (desktop) apart, as specified.
+- **The shortcut hint shows "⌘K" on Apple platforms and "Ctrl K" elsewhere.**
+
+## Game page
+
+- **Listings are generated on the client** from the game record (`getListings()` in `src/lib/mock/listings.ts` is pure and seeded by the slug), so the 858 prerendered game pages ship only the hero, stats and related games, not up to 240 listing objects each. The server computes the same stats for the hero and cards, so the numbers agree.
+- **Each listing type is capped at 40 mock offers.** That is enough to show filtering and "Load more" (12 per page) without bloating memory.
+- **Only `tab` and `v` (variant) live in the URL.** Price, delivery, rating, online, label and experience filters are kept per tab in component state, so switching tabs and coming back restores them, while shared links stay short. The price range is clamped whenever the variant changes the bounds.
+- **Tabs use `activationMode="manual"`** so arrow keys move focus without switching tabs (and pushing history entries) on every key press. Only the active tab's panel renders.
+- **"Why buy here" sits beside the hero on large screens** and moves below the offers on smaller ones, so offers stay near the top on mobile.
+- **The mobile offers bar appears only while the offers section is on screen** and hides (and becomes `inert`) while the filter sheet is open.
+- **Currency and keys get a quantity stepper** (up to 99 or the stock, whichever is lower). Other types are one-off and always have quantity 1.
+- **"Buy now" adds the offer to the cart and opens checkout**, so checkout always works from one cart.
+
+## Sellers, cart and checkout
+
+- **A seller's games and offers come from the same listing generator as the game pages.** Candidate games are ordered by a hash of the seller id, and a game is kept only if that seller actually has offers there, up to eight games. Every offer on a seller page also appears on its game page.
+- **On seller pages the listing card shows the game instead of the seller** (all offers share the seller), and the "Games" chips link to the game pages. A second chip row filters the offers by game.
+- **Only the seller tab (`?tab=reviews`) is in the URL.** The game filter on the Offers tab is local state.
+- **The "Helpful" buttons toggle per review** (with `aria-pressed`) and add one to the count. Nothing is saved.
+- **Cart and checkout show a skeleton until the persisted cart loads** (`useCartHydrated`), so a full cart never flashes as empty.
+- **"Clear cart" offers Undo**, the same as removing one item.
+- **Delivery details are asked only for currency, items and services**, one field per cart line, labeled by type (character name, in-game username, account or character name). Accounts and keys arrive in the order chat.
+- **Card validation reads the clock only on submit** (expiry must not be in the past). The test card 4242 4242 4242 4242 is shown in the demo banner. Switching payment method hides the card fields but keeps what was typed.
+- **Order numbers use `crypto.getRandomValues` in the submit handler**, never during render. They use an alphabet without 0, O, 1 and I. The order is saved to `sessionStorage` before the cart is cleared, and checkout keeps showing the placed items until navigation completes.
+- **The success page shows the order again after a refresh** (it is in `sessionStorage`), and sends you to `/` when there is no order.
+- **Cart, checkout and success pages are `noindex`.**
+
+## Polish, SEO and QA
+
+- **Reduced motion is handled at three levels:** a global `MotionConfig reducedMotion="user"` (motion skips transform and layout animations), the CSS media query that shortens transitions and hides the marquee, and the `[data-reveal]` rule that keeps scroll reveals visible. Opacity fades still run, which the OS setting allows.
+- **Open Graph images are prerendered at build time** for the site and all 858 games (about 15 seconds of build time). They use Geist TTFs committed in `assets/fonts/` (SIL OFL), because `next/font` ships WOFF2, which the image renderer cannot read, and fetching fonts would be a network call.
+- **The sitemap lists home, browse, categories, every game, every seller, help and about.** Cart, checkout and `/dev/tiles` are left out and disallowed in `robots.txt`. Cart and checkout are also `noindex`.
+- **The 404 search box is a plain GET form to `/browse?q=`**, so it works before JavaScript loads and reuses the browse search.
+- **`error.tsx` uses `retry()`**, which became the stable recovery API in Next.js 16.3.
+- **Help and About are short static pages.** The FAQ accordion is shared with the home page. Footer links (`#buyer-protection`, `#delivery`, `#sellers`, `#demo`) land below the sticky header via `scroll-margin-top`.
+- **The brand name lives only in `src/lib/site.ts`.** Every page, metadata entry and image reads it from there.
+
+## Known limitations
+
+- **Hard reloads of filtered URLs** (`/browse?cat=...`, `?tab=` on game pages) show the unfiltered state for a moment until hydration applies the filters, because pages are fully prerendered (see Browse).
+- **Mock data is generated, not curated**, so some combinations read oddly, for example a currency name from one game's labels next to a generic title template, or a 5.0 seller with a few 4-star reviews.
+- **The cart stores prices captured when an item was added.** Changing the generator later would leave old carts with stale prices until they are cleared.
+- **No real search ranking across listings**: search covers game names only, as specified.
+
+## Game art
+
+- **Source:** `data/game-images.json` (committed), prebuilt from IGDB with four Steam header fallbacks. No API keys and no runtime lookups; the app only uses the public image URLs in that file. `scripts/index-game-assets.mjs` reduces it to a compact id map in `src/generated/game-art.json` (regenerated before `dev`, `build`, `lint` and `typecheck`).
+- **Match stats:** 746 of 858 games have images (701 exact, 15 fuzzy, 26 manual alias, 4 Steam); 112 have none and keep the generated tiles (mostly apps, launchers and RP servers). Of the 6 IGDB matches without a cover, Car Parking Multiplayer 2 and Myths of Moonrise use their artwork, while Amikin Survival, Oniro, SOL: enchant and UFC have no usable artwork (UFC only has a screenshot), so they also keep the tile. Net: 742 games show real art, 116 show generated tiles.
+- **Franchise entries are mapped to one representative game**, so the art is that game's cover, not the series. Examples: Assassin's Creed shows *Assassin's Creed II*, FIFA shows *EA Sports FC 25*, Total War shows *Rome: Total War*, Batman: Arkham shows *Arkham City*. 42 entries are fuzzy or alias matches and may be worth a spot check.
+- **Covers fill the square tiles with a center crop** (cards, grids, palette, A to Z). The game page hero uses the cover in its real 3:4 shape. Artwork (else a screenshot, else the Steam header) is the wide hero banner, faded behind the hero card. Cover and artwork-only games both use `next/image`.
+- **Images go through `next/image`** (`remotePatterns` for `images.igdb.com` and `cdn.cloudflare.steamstatic.com`), so they are resized and served as WebP/AVIF. Tiles are lazy with exact `sizes`; only the hero cover and banner are `priority`. Tile boxes have fixed size, so nothing shifts while images load.
+- **Fallback:** the generated tile is always rendered underneath. If an image fails (including before hydration), `ArtImage` removes itself and the tile shows. A local `public/games/{slug}/logo.png` still takes priority over IGDB art.
+- **Alt text:** tiles sit next to the game name, so they are decorative (`alt=""`); the hero cover has `"{name} cover art"`.
+- **Not changed:** Open Graph images keep the generated tile, because fetching 858 remote images at build time would make builds depend on the network.

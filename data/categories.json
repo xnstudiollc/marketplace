@@ -1,0 +1,54 @@
+{
+  "categories": [
+    {
+      "id": "pc-console",
+      "label": "PC & Console"
+    },
+    {
+      "id": "online-mmo",
+      "label": "Online & MMO"
+    },
+    {
+      "id": "mobile",
+      "label": "Mobile"
+    },
+    {
+      "id": "ai-software",
+      "label": "AI & Software"
+    },
+    {
+      "id": "platforms-gift-cards",
+      "label": "Platforms & Gift Cards"
+    },
+    {
+      "id": "social-streaming",
+      "label": "Social & Streaming"
+    }
+  ],
+  "listingTypes": [
+    {
+      "id": "accounts",
+      "label": "Accounts"
+    },
+    {
+      "id": "currency",
+      "label": "Currency"
+    },
+    {
+      "id": "items",
+      "label": "Items"
+    },
+    {
+      "id": "services",
+      "label": "Boosting & Services"
+    },
+    {
+      "id": "keys",
+      "label": "Keys & Passes"
+    },
+    {
+      "id": "other",
+      "label": "Other"
+    }
+  ]
+}
