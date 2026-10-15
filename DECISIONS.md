@@ -78,3 +78,14 @@ Short notes on choices where the build prompt was silent or where the framework 
 - **Mock data is generated, not curated**, so some combinations read oddly, for example a currency name from one game's labels next to a generic title template, or a 5.0 seller with a few 4-star reviews.
 - **The cart stores prices captured when an item was added.** Changing the generator later would leave old carts with stale prices until they are cleared.
 - **No real search ranking across listings**: search covers game names only, as specified.
+
+## Game art
+
+- **Source:** `data/game-images.json` (committed), prebuilt from IGDB with four Steam header fallbacks. No API keys and no runtime lookups; the app only uses the public image URLs in that file. `scripts/index-game-assets.mjs` reduces it to a compact id map in `src/generated/game-art.json` (regenerated before `dev`, `build`, `lint` and `typecheck`).
+- **Match stats:** 746 of 858 games have images (701 exact, 15 fuzzy, 26 manual alias, 4 Steam); 112 have none and keep the generated tiles (mostly apps, launchers and RP servers). Of the 6 IGDB matches without a cover, Car Parking Multiplayer 2 and Myths of Moonrise use their artwork, while Amikin Survival, Oniro, SOL: enchant and UFC have no usable artwork (UFC only has a screenshot), so they also keep the tile. Net: 742 games show real art, 116 show generated tiles.
+- **Franchise entries are mapped to one representative game**, so the art is that game's cover, not the series. Examples: Assassin's Creed shows *Assassin's Creed II*, FIFA shows *EA Sports FC 25*, Total War shows *Rome: Total War*, Batman: Arkham shows *Arkham City*. 42 entries are fuzzy or alias matches and may be worth a spot check.
+- **Covers fill the square tiles with a center crop** (cards, grids, palette, A to Z). The game page hero uses the cover in its real 3:4 shape. Artwork (else a screenshot, else the Steam header) is the wide hero banner, faded behind the hero card. Cover and artwork-only games both use `next/image`.
+- **Images go through `next/image`** (`remotePatterns` for `images.igdb.com` and `cdn.cloudflare.steamstatic.com`), so they are resized and served as WebP/AVIF. Tiles are lazy with exact `sizes`; only the hero cover and banner are `priority`. Tile boxes have fixed size, so nothing shifts while images load.
+- **Fallback:** the generated tile is always rendered underneath. If an image fails (including before hydration), `ArtImage` removes itself and the tile shows. A local `public/games/{slug}/logo.png` still takes priority over IGDB art.
+- **Alt text:** tiles sit next to the game name, so they are decorative (`alt=""`); the hero cover has `"{name} cover art"`.
+- **Not changed:** Open Graph images keep the generated tile, because fetching 858 remote images at build time would make builds depend on the network.

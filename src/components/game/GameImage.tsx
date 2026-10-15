@@ -1,5 +1,7 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
+import { ArtImage } from "@/components/game/ArtImage";
+import { getGameArt } from "@/lib/game-art";
 import assets from "@/generated/game-assets.json";
 import { hash } from "@/lib/mock/rng";
 import { cn } from "@/lib/utils";
@@ -39,18 +41,28 @@ export function GameImage({
   size = "md",
   className,
   priority,
+  portrait,
+  alt = "",
 }: {
   game: TileGame;
   size?: Size;
   className?: string;
   priority?: boolean;
+  /** Use the cover's 3:4 shape when real cover art exists. Set the width through `className`. */
+  portrait?: boolean;
+  /** Empty by default: tiles sit next to the game's name. Pass text where the tile stands alone. */
+  alt?: string;
 }) {
   const hasAsset = ASSETS[game.slug] === true;
+  const art = hasAsset ? undefined : getGameArt(game.slug);
+  const tall = Boolean(portrait && art?.cover && !game.collection);
   const base = cn(
     "relative shrink-0 rounded-[22%]",
     game.collection ? "size-full" : SIZE_CLASS[size],
     game.collection ? undefined : className,
+    tall && "aspect-[3/4] h-auto rounded-2xl",
   );
+  const artSizes = size === "fill" ? "(min-width: 1024px) 240px, 40vw" : `${SIZE_PX[size]}px`;
 
   const tile = hasAsset ? (
     <div
@@ -67,12 +79,20 @@ export function GameImage({
     </div>
   ) : (
     <div
-      aria-hidden
+      aria-hidden={alt ? undefined : true}
       data-long={game.initials.length > 2 || undefined}
       className={cn("game-tile", base)}
       style={{ "--tile-bg": tileBackground(game.slug) } as CSSProperties}
     >
-      <span>{game.initials}</span>
+      <span aria-hidden>{game.initials}</span>
+      {art && (
+        <ArtImage
+          src={tall && art.cover ? art.cover : art.tile}
+          alt={alt}
+          sizes={tall ? "120px" : artSizes}
+          priority={priority}
+        />
+      )}
     </div>
   );
 

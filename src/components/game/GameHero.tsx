@@ -1,6 +1,8 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Clock, Store, Tag, Wallet } from "lucide-react";
+import { ArtImage } from "@/components/game/ArtImage";
+import { getGameArt } from "@/lib/game-art";
 import { GameImage, tileBackground } from "@/components/game/GameImage";
 import { NotifyButton } from "@/components/game/NotifyButton";
 import { CATEGORY_META, LISTING_TYPE_META, LISTING_TYPE_ORDER } from "@/lib/categories";
@@ -10,6 +12,7 @@ import type { Game } from "@/lib/types";
 
 export function GameHero({ game, stats }: { game: Game; stats: GameStats }) {
   const category = CATEGORY_META[game.category];
+  const art = getGameArt(game.slug);
   const types = LISTING_TYPE_ORDER.filter((t) => game.listingTypes.includes(t));
   const facts = [
     { icon: Tag, label: "Offers", value: formatNumber(stats.offers) },
@@ -24,6 +27,13 @@ export function GameHero({ game, stats }: { game: Game; stats: GameStats }) {
       className="glass relative isolate overflow-hidden rounded-3xl p-5 sm:p-8"
       style={{ "--cat-accent": category.accent } as CSSProperties}
     >
+      {art?.banner && (
+        <div
+          className="absolute inset-0 -z-10 [mask-image:linear-gradient(to_bottom,black_10%,transparent_95%)] sm:[mask-image:linear-gradient(to_left,black_5%,transparent_90%)]"
+        >
+          <ArtImage src={art.banner} sizes="(min-width: 1024px) 900px, 100vw" priority className="opacity-40" />
+        </div>
+      )}
       <div
         aria-hidden
         className="absolute -top-1/3 -right-[10%] -z-10 aspect-square w-[70%] max-w-[560px] rounded-[22%] opacity-30 blur-[90px]"
@@ -35,7 +45,7 @@ export function GameHero({ game, stats }: { game: Game; stats: GameStats }) {
         style={{ background: "var(--cat-accent)" }}
       />
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-        <GameImage game={game} size="lg" priority className="size-24 sm:size-[120px]" />
+        <GameImage game={game} size="lg" priority portrait alt={`${game.name} cover art`} className="size-24 sm:size-[120px] w-24 sm:w-[120px]" />
         <div className="min-w-0 flex-1">
           <Link
             href={`/category/${game.category}`}
