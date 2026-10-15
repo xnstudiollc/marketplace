@@ -57,6 +57,7 @@ if (existsSync(imagesPath)) {
 mkdirSync(generatedDir, { recursive: true });
 writeFileSync(resolve(generatedDir, "game-art.json"), JSON.stringify(art) + "\n");
 writeFileSync(resolve(generatedDir, "game-assets.json"), JSON.stringify(assets, null, 2) + "\n");
+mkdirSync(resolve(root, "public"), { recursive: true });
 writeFileSync(resolve(root, "public/search-index.json"), JSON.stringify(searchIndex));
 
 console.log(`Indexed ${Object.keys(art).length} game art entries, ${Object.keys(assets).length} game logos, ${searchIndex.length} search entries.`);
